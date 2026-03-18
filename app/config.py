@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     EMBEDDING_BATCH_SIZE: int = 32  # HF API supports batching
     STARTUP_SELF_TEST: bool = False
     DATASET_DIR: str = "./data/original"
-    ALT_DATASET_DIR: str = "./data/orginal"
+    ALT_DATASET_DIR: str = "./data/transformed"
     LOG_LEVEL: str = "INFO"
 
     class Config:

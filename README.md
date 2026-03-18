@@ -1,47 +1,20 @@
-Run it                                                                                                        
-                                                                                                                
-  1. Install deps:                                                                                              
-                                                                                                                
-  uv sync                                                                                                       
-                                                                                                                
-  2. Build RAG documents + vector DB from your dataset:                                                         
-                                                                                                                
-  uv run python -m app.scripts.build_vectorstore                                                                
-                                                                                                                
-  3. Start API:                                                                                                 
-                                                                                                                
-  uv run run-app                                                                                                
-                                                                                                                
-  Test it                                                                                                       
-                                                                                                                
-  - Health:                                                                                                     
-                                                                                                                
-  Invoke-RestMethod -Uri "http://127.0.0.1:8001/health" -Method GET                                             
-                                                                                                                
-  - Retrieval only:                                                                                             
-                                                                                                                
-  $body = @{                                                                                                    
-    query = "What other structures are found in Banteay Chhmar?"                                                
-    top_k = 5                                                                                                   
-  } | ConvertTo-Json                                                                                            
-  Invoke-RestMethod -Uri "http://127.0.0.1:8001/api/v1/retrieve-only" -Method POST -ContentType "application/js 
-  on" -Body $body                                                                                               
+# How to run the project
 
-  - Retrieval only:
+This project is designed to be run in a Unix-like environment. The instructions below assume that you are using a Unix-like shell.
 
-  $body = @{
-    query = "What other structures are found in Banteay Chhmar?"
-    top_k = 5
-  } | ConvertTo-Json
-  Invoke-RestMethod -Uri "http://127.0.0.1:8001/api/v1/retrieve-only" -Method POST -ContentType "application/js
-  on" -Body $body
+## Step 1: Install dependencies
 
-  - Full RAG answer:
+First, install the dependencies required by the project.
 
-  $body = @{
-    question = "Besides the main temple complex, what other structures are found within Banteay Chhmar's
-  grounds?"
-    top_k = 5
-  } | ConvertTo-Json
-  Invoke-RestMethod -Uri "http://127.0.0.1:8001/api/v1/query" -Method POST -ContentType "application/json" -Body
-  $body
+## Step 2: Run the project
+
+After installing the dependencies, you can run the project.
+
+Run the following command to start the project:
+
+## Build Vector Store
+
+```bash
+uv run python -m app.scripts.build_vectorstore
+```
+This command will execute the `build_vectorstore.py` script, which processes the dataset and builds the vector store for the RAG engine.

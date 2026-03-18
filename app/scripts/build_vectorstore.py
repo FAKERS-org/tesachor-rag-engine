@@ -6,6 +6,7 @@ from app.services.vector_store import VectorStoreService
 from app.config import settings
 from app.utils.data_transformer import ConversationTransformer
 
+
 async def build_with_hf_inference():
     embeddings = get_embeddings_service()
     test_embed = await embeddings.aembed_query("test")
@@ -23,8 +24,10 @@ async def build_with_hf_inference():
         )
 
     output_path = Path("data/rag_documents.jsonl")
-    transformer = ConversationTransformer(data_dir=str(dataset_dir))
-    transformer.transform_all(output_file=str(output_path))
+    transformer = ConversationTransformer(
+        data_dir=str(dataset_dir), flat_format=True)
+    # Specify the number of files to process here (e.g., 5)
+    transformer.transform_all(output_file=str(output_path), max_files=5)
 
     documents = []
     with output_path.open("r", encoding="utf-8") as f:
@@ -46,7 +49,8 @@ async def build_with_hf_inference():
             meta["chunk_id"] = meta.get("chunk_id", f"chunk_{i+j}")
 
         vector_store.add_documents(texts, metadatas)
-        print(f"  Processed batch {i//batch_size + 1}/{(len(documents)-1)//batch_size + 1}")
+        print(
+            f"  Processed batch {i//batch_size + 1}/{(len(documents)-1)//batch_size + 1}")
 
     stats = vector_store.get_collection_stats()
     print(f"Vector store ready: {stats}")

@@ -9,6 +9,7 @@ from typing import List, Dict, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class KnowledgeChunk:
     """Structured chunk for vector storage"""
@@ -16,9 +17,10 @@ class KnowledgeChunk:
     metadata: Dict         # Filterable attributes
     source_conversation: str  # Original thread ID
     turn_number: int       # Position in conversation
-    
+
+
 class ConversationTransformer:
-    def __init__(self, data_dir: str = "data/original"):
+    def __init__(self, data_dir: str = "data/original", flat_format: bool = False):
         requested = Path(data_dir)
         if requested.exists():
             self.data_dir = requested
@@ -26,7 +28,8 @@ class ConversationTransformer:
             self.data_dir = requested.with_name("orginal")
         else:
             self.data_dir = requested
-        
+        self.flat_format = flat_format
+
     def load_jsonl_files(self) -> Iterator[Dict]:
         """Load all _part_*.jsonl files"""
         for file_path in sorted(self.data_dir.glob("_part_*.jsonl")):
@@ -39,7 +42,7 @@ class ConversationTransformer:
                         yield record
                     except json.JSONDecodeError:
                         continue
-    
+
     def extract_facts(self, record: Dict) -> List[KnowledgeChunk]:
         """
         Convert conversation thread into fact chunks
@@ -47,28 +50,30 @@ class ConversationTransformer:
         """
         messages = record.get('messages', [])
         chunks = []
-        
+
         # Find conversation topic from first user message
         topic = self._extract_topic(messages)
         conversation_id = f"{record['_source_file']}_{record['_line_number']}"
-        
+
         # Track conversation flow for context
         conversation_history = []
-        
+
         for i, msg in enumerate(messages):
             if msg['role'] == 'assistant' and i > 0:
                 # Get preceding user question
-                user_msg = messages[i-1] if messages[i-1]['role'] == 'user' else None
-                
+                user_msg = messages[i-1] if messages[i -
+                                                     1]['role'] == 'user' else None
+
                 if user_msg:
                     # Create enriched content: Question + Answer + Context
                     content = self._create_fact_document(
                         question=user_msg['content'],
                         answer=msg['content'],
                         topic=topic,
-                        history=conversation_history[-3:]  # Last 3 turns for context
+                        # Last 3 turns for context
+                        history=conversation_history[-3:]
                     )
-                    
+
                     chunk = KnowledgeChunk(
                         content=content,
                         metadata={
@@ -84,19 +89,19 @@ class ConversationTransformer:
                         turn_number=i
                     )
                     chunks.append(chunk)
-                    
+
                     # Update history for next iteration
                     conversation_history.append({
                         'q': user_msg['content'],
                         'a': msg['content']
                     })
-        
+
         return chunks
-    
+
     def _create_fact_document(
-        self, 
-        question: str, 
-        answer: str, 
+        self,
+        question: str,
+        answer: str,
         topic: str,
         history: List[Dict]
     ) -> str:
@@ -107,10 +112,10 @@ class ConversationTransformer:
         # Clean up conversational filler
         clean_answer = self._clean_response(answer)
         clean_question = self._clean_question(question)
-        
+
         # Build context-aware document
         parts = [f"Topic: {topic}"]
-        
+
         # Add conversation context if relevant (for follow-up questions)
         if history and self._is_follow_up(clean_question):
             context = " | ".join([
@@ -118,14 +123,14 @@ class ConversationTransformer:
                 for h in history[-2:]
             ])
             parts.append(f"Context: {context}")
-        
+
         parts.extend([
             f"Question: {clean_question}",
             f"Answer: {clean_answer}"
         ])
-        
+
         return " | ".join(parts)
-    
+
     def _clean_response(self, text: str) -> str:
         """Remove conversational filler words"""
         fillers = [
@@ -136,39 +141,40 @@ class ConversationTransformer:
         for filler in fillers:
             result = result.replace(filler, "").strip()
         return result
-    
+
     def _clean_question(self, text: str) -> str:
         """Normalize question format"""
         # Remove polite prefixes
-        text = re.sub(r'^(Can you|Could you|Please|I\'d like to know|I want to know)\s+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'^(Can you|Could you|Please|I\'d like to know|I want to know)\s+',
+                      '', text, flags=re.IGNORECASE)
         # Remove question marks for embedding consistency
         text = text.rstrip('?').strip()
         return text
-    
+
     def _extract_topic(self, messages: List[Dict]) -> str:
         """Identify main topic from conversation"""
         # Look for location names in first few messages
-        locations = ['Banteay Chhmar', 'Angkor', 'Phnom Penh', 'Siem Reap', 
-                    'Battambang', 'Kampot', 'Kep', 'Sihanoukville']
-        
+        locations = ['Banteay Chhmar', 'Angkor', 'Phnom Penh', 'Siem Reap',
+                     'Battambang', 'Kampot', 'Kep', 'Sihanoukville']
+
         text = " ".join([m['content'] for m in messages[:3]])
-        
+
         for loc in locations:
             if loc.lower() in text.lower():
                 return loc
-        
+
         # Fallback: classify by content
         if any(word in text.lower() for word in ['temple', 'wat', 'pagoda']):
             return "Cambodian Temples"
         elif any(word in text.lower() for word in ['economy', 'gdp', 'macro']):
             return "Cambodian Economy"
-        
+
         return "General Cambodia Tourism"
-    
+
     def _classify_question(self, question: str) -> str:
         """Classify question type for metadata filtering"""
         q = question.lower()
-        
+
         if any(w in q for w in ['what is', 'what are', 'define']):
             return "definition"
         elif any(w in q for w in ['how', 'way to', 'process']):
@@ -183,11 +189,11 @@ class ConversationTransformer:
             return "quantitative"
         else:
             return "general"
-    
+
     def _contains_numbers(self, text: str) -> bool:
         """Check if answer contains numerical data"""
         return bool(re.search(r'\d+', text))
-    
+
     def _extract_locations(self, text: str) -> List[str]:
         """Extract mentioned locations"""
         cambodia_locations = [
@@ -201,21 +207,52 @@ class ConversationTransformer:
             if loc.lower() in text_lower:
                 found.append(loc)
         return found
-    
+
     def _is_follow_up(self, question: str) -> bool:
         """Detect if question references previous context"""
-        indicators = ['it', 'that', 'the temple', 'there', 'this place', 
-                     'they', 'them', 'those', 'the area']
+        indicators = ['it', 'that', 'the temple', 'there', 'this place',
+                      'they', 'them', 'those', 'the area']
         return any(ind in question.lower() for ind in indicators)
-    
-    def transform_all(self, output_file: str = "data/rag_documents.jsonl"):
-        """Process all files and save transformed data"""
+
+    def transform_all(self, output_file: str = "data/rag_documents.jsonl", max_files: int = 1):
+        """Process all files and save transformed data. If max_files is set, only process up to that many files."""
         all_chunks = []
-        
-        for record in self.load_jsonl_files():
-            chunks = self.extract_facts(record)
-            all_chunks.extend(chunks)
-        
+        files = sorted(self.data_dir.glob("_part_*.jsonl"))
+        if max_files is not None:
+            files = files[:max_files]
+        if self.flat_format:
+            # Flat format: treat each line as a chunk
+            for file_path in files:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line_num, line in enumerate(f, 1):
+                        try:
+                            record = json.loads(line.strip())
+                            record['_source_file'] = file_path.name
+                            record['_line_number'] = line_num
+                            content = record.get('text', '')
+                            metadata = record.get('metadata', {})
+                            chunk = KnowledgeChunk(
+                                content=content,
+                                metadata=metadata,
+                                source_conversation=metadata.get(
+                                    'source', record.get('_source_file', 'unknown')),
+                                turn_number=record.get('_line_number', 0)
+                            )
+                            all_chunks.append(chunk)
+                        except json.JSONDecodeError:
+                            continue
+        else:
+            for file_path in files:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line_num, line in enumerate(f, 1):
+                        try:
+                            record = json.loads(line.strip())
+                            record['_source_file'] = file_path.name
+                            record['_line_number'] = line_num
+                            chunks = self.extract_facts(record)
+                            all_chunks.extend(chunks)
+                        except json.JSONDecodeError:
+                            continue
         # Save as JSONL
         with open(output_file, 'w', encoding='utf-8') as f:
             for chunk in all_chunks:
@@ -225,16 +262,14 @@ class ConversationTransformer:
                     'conversation_id': chunk.source_conversation,
                     'turn': chunk.turn_number
                 }, ensure_ascii=False) + '\n')
-        
         print(f"Transformed {len(all_chunks)} chunks from conversations")
         print(f"Saved to {output_file}")
-        
         # Print sample
         if all_chunks:
             print("\nSample chunk:")
             print(all_chunks[0].content[:300] + "...")
-        
         return all_chunks
+
 
 # Run transformation
 if __name__ == "__main__":
