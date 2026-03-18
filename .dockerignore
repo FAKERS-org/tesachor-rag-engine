@@ -1,0 +1,35 @@
+    # --- Python Specific ---
+    __pycache__/
+    *.py[cod]
+    *$py.class
+    .pytest_cache/
+    .mypy_cache/
+    .ruff_cache/
+    .venv/
+    env/
+    venv/
+    ENV/
+
+    # --- UV & Build Specific ---
+    .uv/
+    dist/
+    build/
+    *.egg-info/
+
+    # --- Docker & Git ---
+    .git
+    .gitignore
+    .dockerignore
+    docker-compose.yml
+    Dockerfile*
+
+    # --- Environment & Secrets ---
+    .env
+    .env.*
+    *.secrets
+    *.pem
+    *.key
+
+    # --- OS Specific ---
+    .DS_Store
+    Thumbs.db
