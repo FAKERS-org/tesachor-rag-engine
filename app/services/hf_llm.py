@@ -24,7 +24,14 @@ class HuggingFaceLLM:
     """
     
     def __init__(self, model_name: str = None):
-        self.model_name = model_name or settings.LLM_MODEL
+        selected_name = model_name or settings.LLM_MODEL
+        shorthand = {
+            "mistral-7b": "mistralai/Mistral-7B-Instruct-v0.2",
+            "zephyr-7b": "HuggingFaceH4/zephyr-7b-beta",
+            "gemma-2b": "google/gemma-2b-it",
+            "phi-2": "microsoft/phi-2",
+        }
+        self.model_name = shorthand.get(selected_name, selected_name)
         
         logger.info(f"Loading LLM: {self.model_name}")
         

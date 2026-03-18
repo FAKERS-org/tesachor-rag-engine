@@ -5,18 +5,14 @@ Supports Chroma (local) or Weaviate (production)
 
 from typing import List, Tuple, Optional
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
 from app.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
 
 class VectorStoreService:
-    def __init__(self):
-        self.embeddings = OpenAIEmbeddings(
-            model=settings.EMBEDDING_MODEL,
-            api_key=settings.OPENAI_API_KEY
-        )
+    def __init__(self, embeddings):
+        self.embeddings = embeddings
         self.store = Chroma(
             persist_directory=settings.VECTOR_DB_PATH,
             embedding_function=self.embeddings,
@@ -38,6 +34,16 @@ class VectorStoreService:
         self.store.add_texts(texts=texts, metadatas=metadatas)
         self.store.persist()
         logger.info(f"Added {len(texts)} documents to vector store")
+
+    def reset_collection(self):
+        """Drop all existing vectors in the current collection."""
+        self.store.delete_collection()
+        self.store = Chroma(
+            persist_directory=settings.VECTOR_DB_PATH,
+            embedding_function=self.embeddings,
+            collection_name=settings.COLLECTION_NAME
+        )
+        logger.info("Reset Chroma collection")
     
     def get_collection_stats(self) -> dict:
         """Get statistics about stored data"""

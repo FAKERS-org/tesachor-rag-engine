@@ -18,8 +18,14 @@ class KnowledgeChunk:
     turn_number: int       # Position in conversation
     
 class ConversationTransformer:
-    def __init__(self, data_dir: str = "data"):
-        self.data_dir = Path(data_dir)
+    def __init__(self, data_dir: str = "data/original"):
+        requested = Path(data_dir)
+        if requested.exists():
+            self.data_dir = requested
+        elif requested.name == "original" and requested.with_name("orginal").exists():
+            self.data_dir = requested.with_name("orginal")
+        else:
+            self.data_dir = requested
         
     def load_jsonl_files(self) -> Iterator[Dict]:
         """Load all _part_*.jsonl files"""
