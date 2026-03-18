@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     # HuggingFace Inference API
     HF_API_TOKEN: Optional[str] = None
+    # Featherless/OpenAI-compatible endpoint token
+    FEATHERLESS_API_KEY: Optional[str] = None
 
     # Model Selection
     # Options: "BAAI/bge-large-en-v1.5", "BAAI/bge-base-en-v1.5", "sentence-transformers/all-MiniLM-L6-v2"
@@ -22,6 +24,8 @@ class Settings(BaseSettings):
     # Or use dedicated endpoints (faster, no cold starts)
     HF_EMBEDDING_ENDPOINT: Optional[str] = None
     HF_LLM_ENDPOINT: Optional[str] = None
+    # Inference provider suffix (e.g. featherless-ai)
+    HF_LLM_PROVIDER: Optional[str] = None
 
     # Generation settings
     LLM_TEMPERATURE: float = 0.7

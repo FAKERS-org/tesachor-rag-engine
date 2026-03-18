@@ -27,7 +27,7 @@ async def build_with_hf_inference():
     transformer = ConversationTransformer(
         data_dir=str(dataset_dir), flat_format=True)
     # Specify the number of files to process here (e.g., 5)
-    transformer.transform_all(output_file=str(output_path), max_files=5)
+    transformer.transform_all(output_file=str(output_path), max_files=1)
 
     documents = []
     with output_path.open("r", encoding="utf-8") as f:

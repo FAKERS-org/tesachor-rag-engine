@@ -4,11 +4,12 @@ Supports Chroma (local) or Weaviate (production)
 """
 
 from typing import List, Tuple, Optional
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from app.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class VectorStoreService:
     def __init__(self, embeddings):
@@ -19,7 +20,7 @@ class VectorStoreService:
             collection_name=settings.COLLECTION_NAME
         )
         logger.info(f"Loaded vector store from {settings.VECTOR_DB_PATH}")
-    
+
     async def asimilarity_search_with_score(
         self,
         query: str,
@@ -28,11 +29,10 @@ class VectorStoreService:
     ) -> List[Tuple]:
         """Async similarity search with relevance scores"""
         return await self.store.asimilarity_search_with_score(query, k=k, filter=filter)
-    
+
     def add_documents(self, texts: List[str], metadatas: List[dict]):
         """Add new documents to vector store"""
         self.store.add_texts(texts=texts, metadatas=metadatas)
-        self.store.persist()
         logger.info(f"Added {len(texts)} documents to vector store")
 
     def reset_collection(self):
@@ -44,7 +44,7 @@ class VectorStoreService:
             collection_name=settings.COLLECTION_NAME
         )
         logger.info("Reset Chroma collection")
-    
+
     def get_collection_stats(self) -> dict:
         """Get statistics about stored data"""
         return {
