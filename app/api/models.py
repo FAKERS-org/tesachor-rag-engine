@@ -55,4 +55,5 @@ class HealthCheck(BaseModel):
     status: str
     service: str
     version: str
+    llm_model: Optional[str] = None
     vector_store: Optional[Dict]

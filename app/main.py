@@ -86,6 +86,7 @@ async def health_check():
         "status": "healthy",
         "service": settings.SERVICE_NAME,
         "version": "1.0.0",
+        "llm_model": settings.LLM_MODEL,
         "vector_store": pipeline.vector_store.get_collection_stats() if pipeline else None
     }
 
