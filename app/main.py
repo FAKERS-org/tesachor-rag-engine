@@ -1,15 +1,16 @@
 import logging
 from contextlib import asynccontextmanager
+from typing import Optional
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import router
-from app.api.models import HealthCheck
-from app.core.rag_pipeline import RAGPipeline
-from typing import Optional
-from app.services.vector_store import VectorStoreService
-from app.services.factory import get_embeddings_service, get_llm_service
+from app.api.v1 import router
+from app.api.v1.schemas import HealthCheck
 from app.config import settings
+from app.core.rag_pipeline import RAGPipeline
+from app.services.factory import get_embeddings_service, get_llm_service
+from app.services.vector_store import VectorStoreService
 
 # Setup logging
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))

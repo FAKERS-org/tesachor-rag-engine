@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
-from typing import Optional
-import time
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-from app.api.models import (
+from app.api.v1.schemas import (
     QueryRequest,
     QueryResponse,
     IngestRequest,
@@ -13,11 +11,14 @@ from app.core.rag_pipeline import RAGPipeline
 
 router = APIRouter()
 
+
 def get_rag_pipeline(request: Request) -> RAGPipeline:
     pipeline = getattr(request.app.state, "rag_pipeline", None)
     if not pipeline:
         raise HTTPException(status_code=503, detail="RAG pipeline not initialized")
     return pipeline
+
+
 @router.post("/query", response_model=QueryResponse)
 async def query(
     request: QueryRequest,

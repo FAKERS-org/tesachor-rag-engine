@@ -3,8 +3,8 @@ Service factory: Choose between local models or HF Inference API
 """
 
 from app.config import settings
-from app.services.hf_inference_embeddings import HFInferenceEmbeddings, HFInferenceEndpointEmbeddings
-from app.services.hf_inference_llm import HFInferenceLLM, HFInferenceEndpointLLM
+from app.services.embeddings import HFInferenceEmbeddings, HFInferenceEndpointEmbeddings
+from app.services.llm import HFInferenceEndpointLLM, HFInferenceLLM
 
 
 def _resolve_llm_api_token():
@@ -37,7 +37,7 @@ def get_embeddings_service():
         )
 
     # Priority 3: Local models (fallback)
-    from app.services.hf_embeddings import HuggingFaceEmbeddings
+    from app.services.embeddings import HuggingFaceEmbeddings
     return HuggingFaceEmbeddings(model_name=settings.EMBEDDING_MODEL)
 
 
@@ -66,5 +66,5 @@ def get_llm_service():
         )
 
     # Priority 3: Local
-    from app.services.hf_llm import HuggingFaceLLM
+    from app.services.llm import HuggingFaceLLM
     return HuggingFaceLLM(model_name=settings.LLM_MODEL)

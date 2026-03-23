@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000)

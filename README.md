@@ -39,7 +39,7 @@ For Featherless endpoints, `FEATHERLESS_API_KEY` is required.
 ## Build Vector Store
 
 ```bash
-uv run python -m app.scripts.build_vectorstore
+uv run python scripts/build_vectorstore.py
 ```
 
 This command will execute the `build_vectorstore.py` script, which processes the dataset and builds the vector store for the RAG engine.
