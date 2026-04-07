@@ -35,7 +35,7 @@ async def build_with_hf_inference():
             documents.append(json.loads(line))
 
     print(f"Building vector store from {len(documents)} transformed chunks...")
-    vector_store.reset_collection()
+    await vector_store.reset_collection()
 
     batch_size = settings.EMBEDDING_BATCH_SIZE
 
@@ -48,7 +48,7 @@ async def build_with_hf_inference():
             meta["doc_id"] = meta.get("doc_id", f"doc_{i+j}")
             meta["chunk_id"] = meta.get("chunk_id", f"chunk_{i+j}")
 
-        vector_store.add_documents(texts, metadatas)
+        await vector_store.add_documents(texts, metadatas)
         print(
             f"  Processed batch {i//batch_size + 1}/{(len(documents)-1)//batch_size + 1}")
 

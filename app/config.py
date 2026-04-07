@@ -32,7 +32,8 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS: int = 512
 
     # Vector DB
-    VECTOR_DB_PATH: str = "./data/vector_db"
+    POSTGRES_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/rag_db"
+    VECTOR_DB_PATH: Optional[str] = "./data/vector_db"
     COLLECTION_NAME: str = "tesachor_knowledge"
     TOP_K_RETRIEVAL: int = 5
 

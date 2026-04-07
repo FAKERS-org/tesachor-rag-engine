@@ -40,10 +40,10 @@ async def query(
             "answer": result.answer,
             "sources": [
                 {
-                    "name": c.metadata.get("name"),
+                    "name": c.metadata.get("name") or "Source",
                     "type": c.source_type,
                     "location": c.metadata.get("location"),
-                    "relevance_score": c.score
+                    "relevance_score": float(c.score)
                 }
                 for c in result.retrieved_chunks
             ],
@@ -128,4 +128,4 @@ async def process_ingestion(data: list, vector_store):
     texts = [c["text"] for c in chunks]
     metadatas = [c["metadata"] for c in chunks]
 
-    vector_store.add_documents(texts, metadatas)
+    await vector_store.add_documents(texts, metadatas)

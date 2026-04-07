@@ -20,9 +20,9 @@ class QueryRequest(BaseModel):
         }
 
 class SourceInfo(BaseModel):
-    name: str
+    name: Optional[str] = None
     type: str
-    location: Optional[str]
+    location: Optional[str] = None
     relevance_score: float
 
 class Metrics(BaseModel):

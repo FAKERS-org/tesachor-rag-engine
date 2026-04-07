@@ -1,10 +1,11 @@
 """
 Vector Database Abstraction
-Supports Chroma (local) or Weaviate (production)
+Supports pgvector (PostgreSQL with pgvector extension)
 """
 
+import asyncio
 from typing import List, Tuple, Optional
-from langchain_chroma import Chroma
+from langchain_postgres import PGVector
 from app.config import settings
 import logging
 
@@ -14,12 +15,13 @@ logger = logging.getLogger(__name__)
 class VectorStoreService:
     def __init__(self, embeddings):
         self.embeddings = embeddings
-        self.store = Chroma(
-            persist_directory=settings.VECTOR_DB_PATH,
-            embedding_function=self.embeddings,
-            collection_name=settings.COLLECTION_NAME
+        self.store = PGVector(
+            connection=settings.POSTGRES_URL,
+            embeddings=self.embeddings,
+            collection_name=settings.COLLECTION_NAME,
+            use_jsonb=True,
         )
-        logger.info(f"Loaded vector store from {settings.VECTOR_DB_PATH}")
+        logger.info(f"Connected to pgvector at {settings.POSTGRES_URL.split('@')[-1]}")
 
     async def asimilarity_search_with_score(
         self,
@@ -27,28 +29,38 @@ class VectorStoreService:
         k: int = 5,
         filter: Optional[dict] = None
     ) -> List[Tuple]:
-        """Async similarity search with relevance scores"""
-        return await self.store.asimilarity_search_with_score(query, k=k, filter=filter)
+        """Async similarity search with relevance scores using thread executor"""
+        # We use asyncio.to_thread because langchain-postgres requires async_mode=True 
+        # for true async calls, which would require an async driver/pool setup.
+        return await asyncio.to_thread(
+            self.store.similarity_search_with_score, 
+            query, 
+            k=k, 
+            filter=filter
+        )
 
-    def add_documents(self, texts: List[str], metadatas: List[dict]):
-        """Add new documents to vector store"""
-        self.store.add_texts(texts=texts, metadatas=metadatas)
+    async def add_documents(self, texts: List[str], metadatas: List[dict]):
+        """Add new documents to vector store using thread executor"""
+        await asyncio.to_thread(self.store.add_texts, texts=texts, metadatas=metadatas)
         logger.info(f"Added {len(texts)} documents to vector store")
 
-    def reset_collection(self):
+    async def reset_collection(self):
         """Drop all existing vectors in the current collection."""
-        self.store.delete_collection()
-        self.store = Chroma(
-            persist_directory=settings.VECTOR_DB_PATH,
-            embedding_function=self.embeddings,
-            collection_name=settings.COLLECTION_NAME
+        await asyncio.to_thread(self.store.drop_tables)
+        self.store = PGVector(
+            connection=settings.POSTGRES_URL,
+            embeddings=self.embeddings,
+            collection_name=settings.COLLECTION_NAME,
+            use_jsonb=True,
         )
-        logger.info("Reset Chroma collection")
+        logger.info("Reset pgvector collection")
 
     def get_collection_stats(self) -> dict:
         """Get statistics about stored data"""
+        # PGVector doesn't have a direct .count() like Chroma, 
+        # but we can try to estimate or return basic info.
         return {
-            "document_count": self.store._collection.count(),
             "collection_name": settings.COLLECTION_NAME,
-            "embedding_model": settings.EMBEDDING_MODEL
+            "embedding_model": settings.EMBEDDING_MODEL,
+            "db_type": "pgvector"
         }
