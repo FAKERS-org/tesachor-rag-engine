@@ -3,7 +3,7 @@ from celery import Celery
 import os
 
 from .utils import get_embedding, vector_search
-from schemas import QueryRequest, IngestRequest
+from .schemas import QueryRequest, IngestRequest
 
 # init fasdtapi
 app = FastAPI(title="Tesachor RAG API")

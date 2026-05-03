@@ -42,5 +42,5 @@ RUN groupadd -r celeryEmbeddingUser && \
 
 USER celeryEmbeddingUser
 
-# Default command (usually overridden in docker-compose.yml)
-CMD ["celery", "-A", "worker", "worker", "--loglevel=info"]
+# Default command
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
