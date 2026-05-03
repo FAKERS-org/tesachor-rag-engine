@@ -1,35 +1,40 @@
+import os
+import json
 from celery import Celery
-import asyncio
-from psycopg2.extras import execute_values
+from utils import get_db_connection, get_embeddings, chunk_text, bulk_insert_documents
 
-app = Celery('ingestion', broker='redis://redis:6379')
+# init celery
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+app = Celery('ingestion', broker=REDIS_URL)
 
-@app.task
-def bulk_ingest_documents(documents: list, version_hash: str):
+@app.task(name='ingest_document_task')
+def ingest_document_task(content: str, metadata: dict, version_hash: str):
+    # the bg task processing a single doc
+    print(f"--- Processing doc: {metadata.get('title', 'unknown')} ---")
     
-    # chunk all document
-    all_chunks = []
-    for doc in documents:
-        chunks = chunk_documents(doc['content'])
-        all_chunks.extend([(chunk, doc['metadata']) for chunk in chunks])
+    # chunk the doc
+    chunks = chunk_text(content)
+
+    # get embedding in 1 batch
+    embeddings = get_embeddings(chunks)
+
+    # prep for bulk insert
+    data_to_insert = []
+    for chunk, embedding in zip(chunks, embeddings):
+        data_to_insert.append(
+            (
+                chunk,
+                embedding,
+                json.dumps(metadata),
+                version_hash
+            )
+        )
         
-    # batch embedding
-    embeddings = []
-    for batch in chunks_batch(all_chunks, size=100):
-        batch_embeddings = embed_service.encode([c[0] for c in batch])
-        embeddings.extend(batch_embeddings)
-        
-    # bulk insert to pgvector
-    execute_values(conn.cursor(), """
-            INSERT INTO documents (content, embedding, metadata, version_hash)
-            VALUES %s
-        """, [(chunks, emb, meta, version_hash) for (chunks, meta), emb in zip(all_chunks, embeddings)])
-    
-    # log to mlflow
-    mlflow.log_params({
-        "chunk_size": 512,
-        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-        "batch_size": 100,
-        "total_chunks": len(all_chunks),
-        "version_hash": version_hash
-    })
+    # load to db
+    conn = get_db_connection()
+    try:
+        bulk_insert_documents(conn, data_to_insert)
+        print(f"--- {len(chunks)} ingested ---")
+    finally:
+        conn.close()
+    return {"status" : "success", "chunks": len(chunks)}

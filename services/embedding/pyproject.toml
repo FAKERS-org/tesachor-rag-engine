@@ -1,0 +1,15 @@
+[project]
+name = "embedding-service"
+version = "0.1.0"
+description = "Microservice for generating text embeddings"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sentence-transformers",
+    "torch",
+    "pydantic"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
