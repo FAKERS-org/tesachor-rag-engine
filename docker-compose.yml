@@ -81,6 +81,11 @@ services:
     environment:
       LAKEFS_BLOCKSTORE_TYPE: local
       LAKEFS_BLOCKSTORE_LOCAL_PATH: /data/lakefs
+      LAKEFS_DATABASE_TYPE: postgres
+      LAKEFS_DATABASE_POSTGRES_CONNECTION_STRING: postgresql://user:pass@postgres:5432/rag?sslmode=disable
+      LAKEFS_AUTH_ENCRYPT_SECRET_KEY: qJWCL/yqzEp/6IjC0MXB57sygd3hfTLp
+    depends_on:
+      - postgres
     volumes:
       - lakefs_data:/data/lakefs
 
