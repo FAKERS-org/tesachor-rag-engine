@@ -26,6 +26,7 @@ services:
       - postgres
       - redis
       - embedding
+      - mlflow
 
   embedding:
     build: ./services/embedding
