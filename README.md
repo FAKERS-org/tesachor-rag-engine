@@ -60,3 +60,38 @@ This command will execute the `build_vectorstore.py` script, which processes the
 - If your conversations are very long, the number of chunks can be much higher.
 
 So, the chunk count is not equal to the number of records—it depends on how many assistant responses are in each conversation.
+
+## Infrastructure
+
+```mermaid
+flowchart TD
+    subgraph Data_Ingestion [Scalable Data Ingestion Pipeline]
+        A[Source Documents] --> B[LakeFS<br>Data Versioning]
+        B --> C[Document Processor<br>Chunking & Metadata]
+        C --> D[Embedding Service<br>Async Batch Processing]
+    end
+
+    subgraph Storage_Layer [Persistent Storage Layer]
+        D --> E[(PGVector<br>with HNSW Index)]
+        B -.->|Commit Hash Traceability| E
+    end
+
+    subgraph Serving_Layer [API & Orchestration]
+        F[User Query] --> G[FastAPI Orchestrator]
+        G --> E
+        G --> H[Reranking & Generation]
+        H --> I[Response]
+    end
+
+    subgraph MLOps_Observability [MLOps & Observability]
+        J[MLflow<br>Experiment Tracking]
+        K[Prometheus & Grafana<br>Metrics & Monitoring]
+        L[MongoDB<br>User Interaction Logging]
+    end
+
+    G -.-> J
+    G -.-> K
+    G -.-> L
+```
+
+## Projection File Structure
