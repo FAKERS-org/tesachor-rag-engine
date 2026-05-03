@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s # How often to poll the services for data
+
+# A scrape configuration containing exactly one endpoint to scrape:
+scrape_configs:
+  # 1. The API Service
+  # We'll expose a /metrics endpoint in our FastAPI app
+  - job_name: 'rag-api'
+    static_configs:
+      - targets: ['app:8000']
+
+  # 2. The Ingestion Worker
+  # Celery workers can also expose metrics via 'flower' or custom exporters
+  - job_name: 'rag-ingestion'
+    static_configs:
+      - targets: ['ingestion_worker:8080'] # Assuming a metrics port
+
+  # 3. The Embedding Service
+  - job_name: 'embedding-service'
+    static_configs:
+      - targets: ['embedding:8080']
