@@ -1,40 +1,45 @@
-from prometheus_fastapi_instrumentator import Instrumentator
-from opentelemetry import trace
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from celery import Celery
+import os
 
-app = FastAPI()
+from .utils import get_embedding, vector_search
+from schemas import QueryRequest, IngestRequest
 
-# Automatic metrics
-Instrumentator().instrument(app).expose(app)
+# init fasdtapi
+app = FastAPI(title="Tesachor RAG API")
 
-# Manual metrics for RAG-specific monitoring
-from prometheus_client import Histogram, Counter
+# connect to celeery for ingetion
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+celery_app = Celery('ingestion', broker=REDIS_URL)
 
-query_latency = Histogram('rag_query_latency_seconds', 'Query processing time')
-retrieval_precision = Histogram('rag_retrieval_precision', 'Precision@K')
-
+# query endpoit
 @app.post("/query")
-@query_latency.time()
-async def query(request: QueryRequest):
-    start_time = time.time()
+async def query_rag(request: QueryRequest):
+    # searc for relevant chunks
+    try:
+        # question -> vector
+        vector = get_embedding(request.question)
+
+        # search db
+        results = vector_search(vector, limit=request.top_k)
+        
+        return {"results" : results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ingestion enfpoit
+@app.post("/ingest")
+async def trigger_ingestion(request: IngestRequest):
+    # push doc to bg workers for proccessing
     
-    # Your existing retrieval logic
-    results = retrieve_and_generate(request.query)
-    
-    # Log to MLflow for later evaluation
-    mlflow.log_metrics({
-        "latency_ms": (time.time() - start_time) * 1000,
-        "retrieved_chunks": len(results['contexts']),
-        "query_length": len(request.query)
-    })
-    
-    # Store for offline evaluation
-    await store_to_mongodb({
-        "query": request.query,
-        "response": results['answer'],
-        "contexts": results['contexts'],
-        "timestamp": datetime.utcnow()
-    })
-    
-    return results
+    # we send the task to celery for the workers to handle chunking and embedding in the bg
+    celery_app.send_task(
+        "ingest_document_task",
+        args=[request.content, request.metadata, request.version_hash],
+    )
+    return {"status" : "accepted", "message" : "Documents queued for processing"}
+
+# root api
+@app.get("/")
+async def root():
+    return {"message" : "Tesachor RAG API is online"}
