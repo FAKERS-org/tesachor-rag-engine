@@ -1,67 +1,37 @@
-# How to run the project
+# Tesachor RAG Engine – Production Workflow
 
-This project is designed to be run in a Unix-like environment. The instructions below assume that you are using a Unix-like shell.
+This project implements a production-grade Retrieval-Augmented Generation (RAG) system, designed for scalable data ingestion, robust retrieval, and full MLOps observability. The architecture is inspired by best practices from open-source blueprints such as `open-rag-stack` and `KazKozDev/production-rag`.
 
-## Step 1: Install dependencies
+---
 
-First, install the dependencies required by the project.
+## Quick Start
 
-## Step 2: Run the project
+1. **Install dependencies**
+2. **Configure environment variables** (see below)
+3. **Build the vector store**
+4. **Run the API service**
 
-After installing the dependencies, you can run the project.
+---
 
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8001
+## System Architecture
 
-uvicorn app.main:app --port 8001
+### High-Level Workflow
+
+```mermaid
+flowchart TD
+    A[User Query] --> B[Query Analyzer]
+    B --> C[Query Optimizer]
+    C --> D[Multi-Strategy Retriever]
+    subgraph D [Retrieval Phase]
+        D1[Semantic<br>Vector Search]
+        D2[Lexical<br>BM25 Search]
+        D3[Hybrid<br>RRF Fusion]
+    end
+    D --> E[Cross-Encoder Reranker]
+    E --> F[Top-K Results]
 ```
 
-Run the following command to start the project:
-
-## Environment Variables
-
-When using a provider endpoint such as Featherless (`/v1/chat/completions`), set a provider key:
-
-```env
-HF_LLM_ENDPOINT=https://api.featherless.ai/v1/chat/completions
-HF_LLM_PROVIDER=featherless-ai
-LLM_MODEL=HuggingFaceH4/zephyr-7b-beta
-
-# Preferred for Featherless/OpenAI-compatible endpoints
-FEATHERLESS_API_KEY=your_featherless_api_key
-
-# HF token used for HF-native flows (e.g., embeddings)
-HF_API_TOKEN=your_hf_token
-```
-
-For Featherless endpoints, `FEATHERLESS_API_KEY` is required.
-
-## Build Vector Store
-
-```bash
-uv run python scripts/build_vectorstore.py
-```
-
-This command will execute the `build_vectorstore.py` script, which processes the dataset and builds the vector store for the RAG engine.
-
-# Note
-
-## QNA
-
-1. Why are there only 5 records in the file specified to be taken to chunking, but then there are Transformed 1433 chunks from conversations?
-
-**Answer:** The reason you see "Transformed 1433 chunks from conversations" when there are only 5 records in your input file is because each record is a conversation thread, and the ConversationTransformer creates a chunk for every assistant response within each conversation.
-
-- Each line in \_part_1.jsonl is a full conversation (not a single Q&A).
-  If a conversation has many turns (user/assistant exchanges), each assistant response becomes a chunk.
-
-- For example, if each conversation has 10 assistant responses, 5 conversations would produce up to 50 chunks.
-
-- If your conversations are very long, the number of chunks can be much higher.
-
-So, the chunk count is not equal to the number of records—it depends on how many assistant responses are in each conversation.
-
-## Infrastructure
+### Production RAG Stack
 
 ```mermaid
 flowchart TD
@@ -70,28 +40,96 @@ flowchart TD
         B --> C[Document Processor<br>Chunking & Metadata]
         C --> D[Embedding Service<br>Async Batch Processing]
     end
-
     subgraph Storage_Layer [Persistent Storage Layer]
         D --> E[(PGVector<br>with HNSW Index)]
         B -.->|Commit Hash Traceability| E
     end
-
     subgraph Serving_Layer [API & Orchestration]
         F[User Query] --> G[FastAPI Orchestrator]
         G --> E
         G --> H[Reranking & Generation]
         H --> I[Response]
     end
-
     subgraph MLOps_Observability [MLOps & Observability]
         J[MLflow<br>Experiment Tracking]
         K[Prometheus & Grafana<br>Metrics & Monitoring]
         L[MongoDB<br>User Interaction Logging]
     end
-
     G -.-> J
     G -.-> K
     G -.-> L
 ```
 
-## Projection File Structure
+---
+
+## Key Features
+
+- **Bulk, Parallel Ingestion:** High-throughput document processing and vectorization using batch operations and multiprocessing.
+- **Data Versioning:** LakeFS ensures every document and embedding is version-controlled and traceable.
+- **Multi-Strategy Retrieval:** Combines semantic (vector), lexical (BM25), and hybrid (RRF) search for high recall and precision.
+- **Reranking:** Cross-encoder models reorder candidates for optimal relevance.
+- **Evaluation & Experiment Tracking:** MLflow and Ragas/MLflow for tracking metrics (Precision@K, Recall@K, MRR, NDCG@K) and experiment parameters.
+- **Observability:** Prometheus and Grafana for real-time monitoring; MongoDB for logging user interactions.
+- **Containerized Deployment:** All services orchestrated via Docker Compose for reproducibility and scalability.
+
+---
+
+## Usage
+
+### 1. Install Dependencies
+
+Install Python and project dependencies as required by your environment.
+
+### 2. Configure Environment Variables
+
+Set the following variables as needed:
+
+```env
+HF_LLM_ENDPOINT=https://api.featherless.ai/v1/chat/completions
+HF_LLM_PROVIDER=featherless-ai
+LLM_MODEL=HuggingFaceH4/zephyr-7b-beta
+FEATHERLESS_API_KEY=your_featherless_api_key
+HF_API_TOKEN=your_hf_token
+```
+
+### 3. Build the Vector Store
+
+```bash
+uv run python scripts/build_vectorstore.py
+```
+
+This processes the dataset and builds the vector store for the RAG engine.
+
+### 4. Run the API Service
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8001
+```
+
+---
+
+## Development & Deployment
+
+- All services (API, embedding, ingestion, monitoring, etc.) are containerized. Use `docker-compose up --build` to launch the full stack.
+- For scaling and cloud deployment, the stack is Kubernetes-ready.
+
+---
+
+## Notes & Q&A
+
+**Q: Why do a few records produce many chunks?**
+
+A: Each record may be a conversation thread. The chunking process creates a chunk for every assistant response, so the number of chunks depends on the number of assistant turns, not the number of records.
+
+---
+
+## File Structure
+
+See the repository for a detailed breakdown of scripts, services, and data folders.
+
+---
+
+## 📚 References
+
+- [open-rag-stack](https://github.com/jerryjliu/open-rag-stack)
+- [KazKozDev/production-rag](https://github.com/KazKozDev/production-rag)
