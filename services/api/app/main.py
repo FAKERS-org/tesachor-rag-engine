@@ -43,3 +43,8 @@ async def trigger_ingestion(request: IngestRequest):
 @app.get("/")
 async def root():
     return {"message" : "Tesachor RAG API is online"}
+
+# health
+@app.get("/health")
+async def health():
+    return {"message" : "Tesachor RAG API is Healthy"}
