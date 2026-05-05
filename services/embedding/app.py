@@ -11,14 +11,14 @@ app = FastAPI(title="Tesachor Embedding Service")
 # 2. Model Configuration
 # We fetch the model name from environment variables, defaulting to the 
 # efficient all-MiniLM-L6-v2 (384 dimensions).
-MODEL_NAME = os.getenv("MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
 
 # Check if a GPU is available. In production, using a GPU for embeddings 
 # can be 10x-100x faster than a CPU.
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-print(f"--- Loading model: {MODEL_NAME} on {DEVICE} ---")
-model = SentenceTransformer(MODEL_NAME, device=DEVICE)
+print(f"--- Loading model: {EMBEDDING_MODEL_NAME} on {DEVICE} ---")
+model = SentenceTransformer(EMBEDDING_MODEL_NAME, device=DEVICE)
 
 # 3. Define Request/Response Schemas
 class EmbedRequest(BaseModel):

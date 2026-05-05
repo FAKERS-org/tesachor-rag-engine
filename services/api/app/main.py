@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from celery import Celery
 import os
 
-from .utils import get_embedding, vector_search
+from .utils import get_embedding, vector_search, generate_answer
 from .schemas import QueryRequest, IngestRequest
+
 
 # init fasdtapi
 app = FastAPI(title="Tesachor RAG API")
@@ -12,18 +13,44 @@ app = FastAPI(title="Tesachor RAG API")
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 celery_app = Celery('ingestion', broker=REDIS_URL)
 
-# query endpoit
+# query endpoint
+# DESCRIPTION: We take the content from each database result and glue it together into one big string (context). 
+# We then wrap that context and the user's question into a strict instruction set (prompt).
+# We send it to Gemini, and then return the final answer.
 @app.post("/query")
 async def query_rag(request: QueryRequest):
     # searc for relevant chunks
     try:
         # question -> vector
         vector = get_embedding(request.question)
-
-        # search db
+        
+        # vector -> search db
         results = vector_search(vector, limit=request.top_k)
         
-        return {"results" : results}
+        # prepare the context by combining all retreived chunks
+        # but keep them seperated
+        context = "\n\n".join([doc["content"] for doc in results])
+        
+        # build prompt for llm to behave
+        prompt = f"""You are a helpful assistant for the Tesachor RAG system.
+Answer the user's question using ONLY the provided reteived documents as context.
+If the answer is not found in the provided context, say "I cannot answer this based on the provided doccuments. Please Consider Tesachor Team for more info."
+
+Context:
+{context}
+
+Question: {request.question}
+Answer:"""
+
+        # generate the answer by sending the prompt to the llm client
+        answer = generate_answer(prompt)
+        
+        # return both the generated answer and
+        # the source documents for transparency (citations) and debugging
+        return {
+            "answer": answer,
+            "results" : results,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

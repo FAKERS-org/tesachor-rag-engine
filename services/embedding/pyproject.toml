@@ -8,7 +8,8 @@ dependencies = [
     "uvicorn",
     "sentence-transformers",
     "torch",
-    "pydantic"
+    "pydantic",
+    "google-genai"
 ]
 
 [build-system]

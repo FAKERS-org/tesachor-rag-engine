@@ -12,4 +12,7 @@ wheels/
 # data
 data/
 .env
+
+# misc
 task_records/
+text.txt
