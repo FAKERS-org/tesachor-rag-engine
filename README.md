@@ -129,7 +129,35 @@ See the repository for a detailed breakdown of scripts, services, and data folde
 
 ---
 
-## 📚 References
+## References
 
 - [open-rag-stack](https://github.com/jerryjliu/open-rag-stack)
 - [KazKozDev/production-rag](https://github.com/KazKozDev/production-rag)
+
+## Development Notes [!IMPORTANT]
+
+Only up the services you need, not all, ok!
+
+**Scenario 1:** Up the impmediate dependencies for building the vector store:
+
+```bash
+docker-compose up -d postgres redis pgadmin
+```
+
+**Scenario 2:** When monitoring the API service, add the monitoring stack:
+
+```bash
+docker-compose up -d postgres redis pgadmin prometheus grafana
+```
+
+**Scenario 3:** For full stack development and testing, up all services:
+
+```bash
+docker-compose up -d
+```
+
+**Among Each Scenario:** There will be some needed to build the any service that is primarily updated. In this, use:
+
+```bash
+docker-compose up -d --build <service_name>
+```
