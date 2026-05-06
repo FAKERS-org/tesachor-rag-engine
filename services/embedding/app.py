@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends
-from .schemas import EmbedRequest, EmbedResponse, HealthResponse
-from .dependencies import get_provider
-from .providers.base import BaseEmbeddingProvider
-from .exceptions import EmbeddingProviderError, EmbeddingAPIError
-from .config import config
+
+from schemas import EmbedRequest, EmbedResponse, HealthResponse
+from dependencies import get_provider
+from providers.base import BaseEmbeddingProvider
+from exceptions import EmbeddingProviderError, EmbeddingAPIError
+from config import config
 
 app = FastAPI(
     title="Tesachor RAG Engine - Embedding Service",
@@ -65,7 +66,7 @@ async def health_check(
 async def startup_event():
     try:
         # test init provider
-        from .providers import get_embedding_provider
+        from providers import get_embedding_provider
         test_provider = get_embedding_provider()
         
         # logs

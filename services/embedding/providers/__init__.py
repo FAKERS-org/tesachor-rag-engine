@@ -1,11 +1,12 @@
 from typing import Dict, Type
-from .base import BaseEmbeddingProvider
-from .local import LocalEmbeddingProvider
-from .cohere import CohereEmbeddingProvider
-# from .openai import OpenAIProvider
-# from .gemini import GeminiProvider
-from ..config import config
-from ..exceptions import ProviderNotConfiguredError
+
+from providers.base import BaseEmbeddingProvider
+from providers.local import LocalEmbeddingProvider
+from providers.cohere import CohereEmbeddingProvider
+# from openai import OpenAIProvider
+# from gemini import GeminiProvider
+from config import config
+from exceptions import ProviderNotConfiguredError
 
 # map
 PROVIDER_MAP: Dict[str, Type[BaseEmbeddingProvider]] = {
@@ -17,7 +18,7 @@ PROVIDER_MAP: Dict[str, Type[BaseEmbeddingProvider]] = {
 
 def get_embedding_provider() -> BaseEmbeddingProvider:
     
-    # check if provider is config
+    # check if provider is configured
     provider_class = PROVIDER_MAP.get(config.provider)
 
     # if not, raiser error and show alternatives

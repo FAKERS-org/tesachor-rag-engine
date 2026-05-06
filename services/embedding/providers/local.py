@@ -2,9 +2,9 @@ from typing import List
 from sentence_transformers import SentenceTransformer
 import torch
 
-from .base import BaseEmbeddingProvider
-from ..config import EmbeddingConfig
-from ..exceptions import EmbeddingAPIError, EmbeddingProviderError
+from providers.base import BaseEmbeddingProvider
+from config import EmbeddingConfig
+from exceptions import EmbeddingProviderError
 
 # Local embedding provider (so lazy and bold)
 class LocalEmbeddingProvider(BaseEmbeddingProvider):

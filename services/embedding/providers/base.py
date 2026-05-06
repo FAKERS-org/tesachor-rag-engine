@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from .config import EmbeddingConfig
+from config import EmbeddingConfig
 
 class BaseEmbeddingProvider(ABC): # abstarct super parent class
     

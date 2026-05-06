@@ -1,6 +1,6 @@
 from fastapi import Request
-from .providers import get_embedding_provider
-from .providers.base import BaseEmbeddingProvider
+from providers import get_embedding_provider
+from providers.base import BaseEmbeddingProvider
 
 # dependency
 async def get_provider(request: Request) -> BaseEmbeddingProvider:

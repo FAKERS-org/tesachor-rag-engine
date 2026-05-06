@@ -9,7 +9,8 @@ dependencies = [
     "sentence-transformers",
     "torch",
     "pydantic",
-    "google-genai"
+    "google-genai",
+    "cohere>=6.1.0",
 ]
 
 [build-system]
