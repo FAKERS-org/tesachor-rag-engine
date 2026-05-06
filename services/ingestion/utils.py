@@ -7,12 +7,12 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 # 1. Database Connection Helper
 def get_db_connection():
     # Fetch DSN from environment variables
-    dsn = os.getenv("PGVECTOR_DSN", "postgresql://user:pass@postgres:5432/rag")
+    dsn = os.getenv("PGVECTOR_DSN", "postgresql://user:pass@localhost:5432/rag")
     return psycopg2.connect(dsn)
 
 # 2. Embedding Service Client
 def get_embeddings(texts: list[str]):
-    url = os.getenv("EMBEDDING_SERVICE_URL", "http://embedding:8080")
+    url = os.getenv("EMBEDDING_SERVICE_URL", "http://localhost:8080")
     response = requests.post(f"{url}/encode", json={"sentences": texts})
     response.raise_for_status()
     return response.json()["embeddings"]

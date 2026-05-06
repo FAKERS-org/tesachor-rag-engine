@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
+from dotenv import load_dotenv
+load_dotenv()
 
 from schemas import EmbedRequest, EmbedResponse, HealthResponse
 from dependencies import get_provider
@@ -36,6 +38,7 @@ async def encode_sentences(
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check(

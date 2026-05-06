@@ -11,7 +11,8 @@ dependencies = [
     "requests",
     "celery",
     "redis",
-    "google-genai"
+    "google-genai",
+    "python-dotenv>=1.2.2",
 ]
 
 [build-system]

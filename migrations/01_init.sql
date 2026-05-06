@@ -19,13 +19,14 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- This table is designed for "Traceable RAG":
 -- - content: The actual text chunk.
 -- - embedding: The 384D vector (optimized for all-MiniLM-L6-v2).
+-- - embedding: The 1024D vector (optimized for the specified embedding model, Cohere).
 -- - metadata: Flexible JSONB to store source info, headers, or page numbers.
 -- - version_hash: The link to LakeFS, allowing us to know exactly which 
 --   version of a file generated this chunk.
 CREATE TABLE IF NOT EXISTS documents (
     id BIGSERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    embedding VECTOR(384),
+    embedding VECTOR(1024),
     metadata JSONB DEFAULT '{}',
     version_hash VARCHAR(64),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

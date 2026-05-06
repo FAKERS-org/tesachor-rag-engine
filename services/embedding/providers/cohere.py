@@ -14,7 +14,7 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
             raise ProviderNotConfiguredError("Cohere API key is not configured. Set EMBEDDING_API_KEY var")
         
         # init cohere client
-        self.client = cohere.Client(config.api_key)
+        self.client = cohere.AsyncClient(config.api_key)
     
     async def embed(self, sentences: List[str]) -> List[List[float]]:
         try:
@@ -22,7 +22,7 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
             response = await self.client.embed(
                 texts=sentences,
                 model=self.config.model_name or "embed-english-v3.0",
-                input_type="search_document",
+                input_type="search_query",
                 embedding_types=["float"]
                 
             )
@@ -34,7 +34,7 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
     async def health_check(self) -> dict:
         try:
             # simple test call or check client
-            self.client.token(text="Health check", model='Command')
+            await self.client.token(text="Health check", model='Command')
             return {"healthy": True, "provider": "cohere",}
         except Exception as e:
             return {"healthy": False, "error": str(e)}

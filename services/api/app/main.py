@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from celery import Celery
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 from .utils import get_embedding, vector_search, generate_answer
 from .schemas import QueryRequest, IngestRequest
@@ -10,7 +12,7 @@ from .schemas import QueryRequest, IngestRequest
 app = FastAPI(title="Tesachor RAG API")
 
 # connect to celeery for ingetion
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 celery_app = Celery('ingestion', broker=REDIS_URL)
 
 # query endpoint

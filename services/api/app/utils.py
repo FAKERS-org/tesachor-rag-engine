@@ -9,12 +9,12 @@ from google import genai
 # (e.g., result['content']) instead of tuples (result[0]), which is much 
 # easier to work with in an API.
 def get_db_connection():
-    dsn = os.getenv("PGVECTOR_DSN", "postgresql://user:pass@postgres:5432/rag")
+    dsn = os.getenv("PGVECTOR_DSN", "postgresql://user:pass@localhost:5432/rag")
     return psycopg2.connect(dsn, cursor_factory=RealDictCursor)
 
 # Embedding Client (same as ingestion worker)
 def get_embedding(text: str):
-    url = os.getenv("EMBEDDING_SERVICE_URL", "http://embedding:8080")
+    url = os.getenv("EMBEDDING_SERVICE_URL", "http://localhost:8080")
     response = requests.post(f"{url}/encode", json={"sentences": [text]})
     response.raise_for_status()
     # Return just the first embedding since we only sent one sentence
@@ -50,7 +50,7 @@ def generate_answer(prompt: str):
     """
     
     provider = os.getenv("LLM_PROVIDER", "google")
-    model_name = os.getenv("LLM_MODEL_NAME", "gemini-1.5-pro")
+    model_name = os.getenv("LLM_MODEL_NAME", "gemini-1.5-pro-002")
     api_key = os.getenv("LLM_API_KEY")
 
     if not api_key:

@@ -176,17 +176,19 @@ docker-compose up -d --build <service_name>
     ```bash
     cd services/embedding
     source .venv/Scripts/activate
-    uv run uvicorn app:app --host 0.0.0.0 --port 8080
+    uv run uvicorn app:app --host 0.0.0.0 --port 8080 --reload
     ```
 
     ```bash
     cd services/api
     source .venv/Scripts/activate
-    uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+    uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ```
     
     ```bash
     cd services/ingestion
     source .venv/Scripts/activate
     uv run celery -A worker worker --loglevel=info --concurrency=4
+
+    uv run celery -A worker worker --loglevel=info --pool=solo
     ```

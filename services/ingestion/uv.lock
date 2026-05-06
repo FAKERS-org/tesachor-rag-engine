@@ -1074,6 +1074,7 @@ dependencies = [
     { name = "mlflow" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "redis" },
     { name = "requests" },
 ]
@@ -1085,6 +1086,7 @@ requires-dist = [
     { name = "mlflow" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "redis" },
     { name = "requests" },
 ]

@@ -10,7 +10,8 @@ dependencies = [
     "requests",
     "langchain-text-splitters",
     "pydantic",
-    "mlflow"
+    "mlflow",
+    "python-dotenv>=1.2.2",
 ]
 
 [build-system]
