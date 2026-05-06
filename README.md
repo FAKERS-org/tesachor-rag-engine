@@ -161,3 +161,32 @@ docker-compose up -d
 ```bash
 docker-compose up -d --build <service_name>
 ```
+
+**Run main services natively:**
+
++ For each service (`api`, `embedding`, `ingestion`):
+
+    Create a Python 3.11+ virtual environment.
+    
+    Install dependencies using `uv add` in each service directory.
+    Set required environment variables (e.g., database and Redis URLs, embedding service URL, model names, API keys).
+    
+    Start services:
+    
+    ```bash
+    cd services/embedding
+    source .venv/Scripts/activate
+    uv run uvicorn app:app --host 0.0.0.0 --port 8080
+    ```
+
+    ```bash
+    cd services/api
+    source .venv/Scripts/activate
+    uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ```
+    
+    ```bash
+    cd services/ingestion
+    source .venv/Scripts/activate
+    uv run celery -A worker worker --loglevel=info --concurrency=4
+    ```

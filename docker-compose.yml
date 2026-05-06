@@ -2,47 +2,47 @@ version: '3.8'
 
 services:
 
-  app:
-    build: ./services/api
-    ports:
-      - "8000:8000"
-    environment:
-      PGVECTOR_DSN: postgresql://user:pass@postgres:5432/rag
-      REDIS_URL: redis://redis:6379
-      EMBEDDING_SERVICE_URL: http://embedding:8080
-      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+  # app:
+  #   build: ./services/api
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     PGVECTOR_DSN: postgresql://user:pass@postgres:5432/rag
+  #     REDIS_URL: redis://redis:6379
+  #     EMBEDDING_SERVICE_URL: http://embedding:8080
+  #     EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
 
-      # ai
-      LLM_PROVIDER: ${LLM_PROVIDER:-google}
-      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-gemini-1.5-pro}
-      LLM_API_KEY: ${LLM_API_KEY}
+  #     # ai
+  #     LLM_PROVIDER: ${LLM_PROVIDER:-google}
+  #     LLM_MODEL_NAME: ${LLM_MODEL_NAME:-gemini-1.5-pro}
+  #     LLM_API_KEY: ${LLM_API_KEY}
 
-    depends_on:
-      - postgres
-      - redis
-      - embedding
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - embedding
 
-  ingestion_worker:
-    build: ./services/ingestion
-    command: celery -A worker worker --loglevel=info --concurrency=4
-    environment:
-      PGVECTOR_DSN: postgresql://user:pass@postgres:5432/rag
-      EMBEDDING_SERVICE_URL: http://embedding:8080
-      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      - postgres
-      - redis
-      - embedding
-      - mlflow
+  # ingestion_worker:
+  #   build: ./services/ingestion
+  #   command: celery -A worker worker --loglevel=info --concurrency=4
+  #   environment:
+  #     PGVECTOR_DSN: postgresql://user:pass@postgres:5432/rag
+  #     EMBEDDING_SERVICE_URL: http://embedding:8080
+  #     EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+  #     REDIS_URL: redis://redis:6379
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - embedding
+  #     - mlflow
 
-  embedding:
-    build: ./services/embedding
-    ports:
-      - "8080:8080"
-    environment:
-      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
-    gpus: all
+  # embedding:
+  #   build: ./services/embedding
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+  #   gpus: all
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -74,47 +74,47 @@ services:
     ports:
       - "6379:6379"
 
-  mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.8.1
-    command: >
-      bash -c "pip install psycopg2-binary && mlflow server --host 0.0.0.0 --backend-store-uri postgresql://user:pass@postgres:5432/rag"
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
+  # mlflow:
+  #   image: ghcr.io/mlflow/mlflow:v2.8.1
+  #   command: >
+  #     bash -c "pip install psycopg2-binary && mlflow server --host 0.0.0.0 --backend-store-uri postgresql://user:pass@postgres:5432/rag"
+  #   ports:
+  #     - "5000:5000"
+  #   depends_on:
+  #     - postgres
 
-  lakefs:
-    image: treeverse/lakefs:latest
-    ports:
-      - "8001:8000"
-    environment:
-      LAKEFS_BLOCKSTORE_TYPE: local
-      LAKEFS_BLOCKSTORE_LOCAL_PATH: /data/lakefs
-      LAKEFS_DATABASE_TYPE: postgres
-      LAKEFS_DATABASE_POSTGRES_CONNECTION_STRING: postgresql://user:pass@postgres:5432/rag?sslmode=disable
-      LAKEFS_AUTH_ENCRYPT_SECRET_KEY: qJWCL/yqzEp/6IjC0MXB57sygd3hfTLp
-    depends_on:
-      - postgres
-    volumes:
-      - lakefs_data:/data/lakefs
+  # lakefs:
+  #   image: treeverse/lakefs:latest
+  #   ports:
+  #     - "8001:8000"
+  #   environment:
+  #     LAKEFS_BLOCKSTORE_TYPE: local
+  #     LAKEFS_BLOCKSTORE_LOCAL_PATH: /data/lakefs
+  #     LAKEFS_DATABASE_TYPE: postgres
+  #     LAKEFS_DATABASE_POSTGRES_CONNECTION_STRING: postgresql://user:pass@postgres:5432/rag?sslmode=disable
+  #     LAKEFS_AUTH_ENCRYPT_SECRET_KEY: qJWCL/yqzEp/6IjC0MXB57sygd3hfTLp
+  #   depends_on:
+  #     - postgres
+  #   volumes:
+  #     - lakefs_data:/data/lakefs
 
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./services/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  # prometheus:
+  #   image: prom/prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./services/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
 
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-    volumes:
-      - ./services/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+  # grafana:
+  #   image: grafana/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
+  #   volumes:
+  #     - ./services/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
 
 volumes:
   pg_data:
-  lakefs_data:
+  # lakefs_data:
   pgadmin_data:

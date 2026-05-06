@@ -1,53 +1,76 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
-import torch
-import os
-from typing import List
+from fastapi import FastAPI, HTTPException, Depends
+from .schemas import EmbedRequest, EmbedResponse, HealthResponse
+from .dependencies import get_provider
+from .providers.base import BaseEmbeddingProvider
+from .exceptions import EmbeddingProviderError, EmbeddingAPIError
+from .config import config
 
-# 1. Initialize FastAPI
-app = FastAPI(title="Tesachor Embedding Service")
+app = FastAPI(
+    title="Tesachor RAG Engine - Embedding Service",
+    description="Multi provider embedding services",
+    version="1.1.0",
+)
 
-# 2. Model Configuration
-# We fetch the model name from environment variables, defaulting to the 
-# efficient all-MiniLM-L6-v2 (384 dimensions).
-EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
-
-# Check if a GPU is available. In production, using a GPU for embeddings 
-# can be 10x-100x faster than a CPU.
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-print(f"--- Loading model: {EMBEDDING_MODEL_NAME} on {DEVICE} ---")
-model = SentenceTransformer(EMBEDDING_MODEL_NAME, device=DEVICE)
-
-# 3. Define Request/Response Schemas
-class EmbedRequest(BaseModel):
-    sentences: List[str]
-
-class EmbedResponse(BaseModel):
-    embeddings: List[List[float]]
-
-# 4. The /encode endpoint
 @app.post("/encode", response_model=EmbedResponse)
-async def encode_sentences(request: EmbedRequest):
-    """
-    Converts a list of strings into a list of vector embeddings.
-    """
+async def encode_sentences(
+    request: EmbedRequest,
+    provider: BaseEmbeddingProvider = Depends(get_provider),
+):
     try:
-        if not request.sentences:
-            return EmbedResponse(embeddings=[])
+        # generate embeddings
+        embeddings = await provider.embed(request.sentences)
         
-        # We use model.encode to generate vectors.
-        # convert_to_tensor=False returns a list of numpy arrays, 
-        # which we then convert to standard Python lists for JSON serialization.
-        embeddings = model.encode(request.sentences, convert_to_tensor=False)
+        # return response with provider and model info
+        return EmbedResponse(
+            embeddings=embeddings,
+            provider=config.provider,
+            model=config.model_name
+        )
         
-        return EmbedResponse(embeddings=embeddings.tolist())
+    except EmbeddingAPIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    except EmbeddingProviderError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
     except Exception as e:
-        print(f"Embedding error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "model": MODEL_NAME, "device": DEVICE}
+@app.get("/health", response_model=HealthResponse)
+async def health_check(
+    provider: BaseEmbeddingProvider = Depends(get_provider)
+):
+    try:
+        # get health
+        provider_health = await provider.health_check()
+        
+        # return
+        return HealthResponse(
+            status="Healthy" if provider_health.get("healthy", False) else "Unhealthy",
+            provider=config.provider,
+            model=config.model_name,
+            details=provider_health
+        )
+        
+    # if error occurs
+    except Exception as e:
+        return HealthResponse(
+            status="unhealthy",
+            provider=config.provider,
+            model=config.model_name,
+            details={"error": str(e)}
+        )
+        
+@app.on_event("startup")
+async def startup_event():
+    try:
+        # test init provider
+        from .providers import get_embedding_provider
+        test_provider = get_embedding_provider()
+        
+        # logs
+        print(f"Provider '{config.provider}' initialized successfully")
+        print(f"Model: {config.model_name}")
+        
+    except Exception as e:
+        print(f"Error initializing provider: {str(e)}")
