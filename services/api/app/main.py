@@ -8,6 +8,13 @@ from .utils import get_embedding, vector_search, generate_answer
 from .schemas import QueryRequest, IngestRequest
 
 
+import traceback
+import logging
+
+# setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # init fasdtapi
 app = FastAPI(title="Tesachor RAG API")
 
@@ -23,16 +30,20 @@ celery_app = Celery('ingestion', broker=REDIS_URL)
 async def query_rag(request: QueryRequest):
     # searc for relevant chunks
     try:
+        logger.info(f"Received query: {request.question}")
+
         # question -> vector
+        logger.info("Generating embedding...")
         vector = get_embedding(request.question)
-        
+
         # vector -> search db
+        logger.info("Performing vector search...")
         results = vector_search(vector, limit=request.top_k)
-        
+
         # prepare the context by combining all retreived chunks
         # but keep them seperated
         context = "\n\n".join([doc["content"] for doc in results])
-        
+
         # build prompt for llm to behave
         prompt = f"""You are a helpful assistant for the Tesachor RAG system.
 Answer the user's question using ONLY the provided reteived documents as context.
@@ -45,8 +56,9 @@ Question: {request.question}
 Answer:"""
 
         # generate the answer by sending the prompt to the llm client
+        logger.info("Generating answer from LLM...")
         answer = generate_answer(prompt)
-        
+
         # return both the generated answer and
         # the source documents for transparency (citations) and debugging
         return {
@@ -54,8 +66,9 @@ Answer:"""
             "results" : results,
         }
     except Exception as e:
+        logger.error(f"Error in query_rag: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
-
 # ingestion enfpoit
 @app.post("/ingest")
 async def trigger_ingestion(request: IngestRequest):

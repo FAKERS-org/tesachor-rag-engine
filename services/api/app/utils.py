@@ -2,7 +2,6 @@ import os
 import requests
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from google import genai
 
 # Database Connection with RealDictCursor
 # RealDictCursor makes the database results look like Python dictionaries
@@ -45,28 +44,18 @@ def vector_search(query_vector: list[float], limit: int = 5):
 # llm genration client
 def generate_answer(prompt: str):
     """
-    Sends the prompt to the selected LLM provider.
-    Now using the google-genai SDK.
+    Sends the prompt to the local LLM service.
     """
+    url = os.getenv("LLM_SERVICE_URL", "http://localhost:8002")
     
-    provider = os.getenv("LLM_PROVIDER", "google")
-    model_name = os.getenv("LLM_MODEL_NAME", "gemini-1.5-pro-002")
-    api_key = os.getenv("LLM_API_KEY")
-
-    if not api_key:
-        raise ValueError("LLM_API_KEY not found")
+    payload = {
+        "prompt": prompt,
+        "system_prompt": "You are a helpful assistant for the Tesachor RAG system.",
+        "temperature": 0.7,
+        "max_tokens": 1024
+    }
     
-    if provider == "google":
-        # init the official google genai client
-        client = genai.Client(api_key=api_key)
-        
-        # send the prompt to the model
-        response = client.models.generate_content(
-            model=model_name,
-            contents=prompt,
-        )
-        
-        return response.text
+    response = requests.post(f"{url}/generate", json=payload)
+    response.raise_for_status()
     
-    else:
-        raise NotImplementedError(f"Provider {provider} is not supported yet.")
+    return response.json()["text"]

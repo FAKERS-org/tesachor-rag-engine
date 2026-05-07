@@ -190,5 +190,45 @@ docker-compose up -d --build <service_name>
     source .venv/Scripts/activate
     uv run celery -A worker worker --loglevel=info --concurrency=4
 
+    // for my machine
     uv run celery -A worker worker --loglevel=info --pool=solo
     ```
+
+    ```bash
+    cd services/llm
+    source .venv/Scripts/activate
+    uv run uvicorn app:app --host
+
+    uv run uvicorn app:app --host 0.0.0.0 --port 8002 --reload
+    ```
+
+
+    ====
+
+     1. Infrastructure (Docker)
+  Start the database (Postgres + pgvector) and the message broker (Redis).
+   1 docker-compose up -d postgres redis
+
+  2. LLM Service (Port 8002)
+
+   1 cd services/llm
+   2 uv sync
+   3 uv run python app.py
+
+  3. Embedding Service (Port 8080)
+
+   1 cd services/embedding
+   2 uv sync
+   3 uv run uvicorn app:app --port 8080
+
+  4. Ingestion Worker (Celery)
+
+   1 cd services/ingestion
+   2 uv sync
+   3 uv run celery -A worker worker --loglevel=info
+
+  5. API Service (Port 8000)
+
+   1 cd services/api
+   2 uv sync
+   3 uv run uvicorn app.main:app --port 8000
