@@ -175,7 +175,7 @@ docker-compose up -d --build <service_name>
     
     ```bash
     cd services/embedding
-    source .venv/Scripts/activate
+    source .venv/Scripts/activate # or source .venv/bin/activate on Unix
     uv run uvicorn app:app --host 0.0.0.0 --port 8080 --reload
     ```
 

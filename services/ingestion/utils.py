@@ -1,3 +1,5 @@
+# TODO: Learn about the prrocess
+
 import os
 import requests
 import psycopg2
