@@ -69,6 +69,7 @@ Answer:"""
         logger.error(f"Error in query_rag: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+    
 # ingestion enfpoit
 @app.post("/ingest")
 async def trigger_ingestion(request: IngestRequest):

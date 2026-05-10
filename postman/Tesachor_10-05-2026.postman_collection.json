@@ -1,0 +1,181 @@
+{
+  "info": {
+    "_postman_id": "b503adc7-a073-44c1-8cbf-35f62d8f172b",
+    "name": "Tesachor",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38475351"
+  },
+  "item": [
+    {
+      "name": "RAG",
+      "item": [
+        {
+          "name": "GET",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{TESACHOR_RAG_v1}}/",
+              "host": [
+                "{{TESACHOR_RAG_v1}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{TESACHOR_RAG_v1}}/health",
+              "host": [
+                "{{TESACHOR_RAG_v1}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ingest",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"content\": \"Giza has the Pyramids, Pisa has the Leaning Tower – and Siem Reap has Angkor. Throughout its history, the second largest city in Cambodia has been practically synonymous with those storied temples – one simply does not travel to Siem Reap without visiting Angkor. On the contrary, Angkor is usually the one and only reason travellers initially choose to visit Siem Reap. More often than not, first time visitors have no preconception of the city beyond its UNESCO protected temples. All the better for Siem Reap as this charming city thrives on the element of surprise. \\n\\n Every year, Angkor is visited by over 2 million people. This staggering number becomes all the more startling when you consider that Siem Reap has a population of just 245,000 people. The city’s one of a kind surroundings and a steady influx of international visitors have given Siem Reap a unique appeal all its own, striking the perfect balance between small town charm and cosmopolitan glamour. \\n\\n In Siem Reap, ancient wisdom and past glories exist in perfect harmony with the here and now. The city is framed by thriving jungle that climbs over ancient ruins and envelops sacred temples. In the heart of the city, you can stroll along the river, marvelling at colonial architecture, old shophouses and vibrant markets teeming with life and colour. \\n\\n While honouring its past, Siem Reap is also thriving in the present moment, with rambling streets crammed with exquisite restaurants, eclectic galleries and a nightlife district that pulsates with live music and neon lights. The city of temples is also home to some of the kindest people you’ll ever encounter. They will welcome you to their rare and remarkable city with heart-warming hospitality that will stay with you long after you’ve waved the stupas of Angkor a fond farewell. \\n\\n Practically every trip to Siem Reap is planned around Angkor, the imposing giant that looms large over the city. As general wisdom has it, you need at least three days to fully take in the temple complex. Three ticket types or Angkor Passes are currently available with visitors able to choose between a 1 day, 3 day and a 7 day pass. Note that you don’t have to spend the multi-day passes on consecutive days, meaning you can enjoy a “cheat day” or two in between temple visits. Once you’ve decided how many days you want to spend at Angkor, it’s time to start planning the rest of your itinerary. Perhaps you want to focus on the sights and sounds of Siem Reap proper or maybe you want to squeeze in a daytrip or two? Our Siem Reap travel guide aims to give you the essential information, list the most popular things to do in Siem Reap, provide more information on locations you want to visit, and finish with some inspiration from our travel writers. \\n\\n Weather wise, the best time to visit Siem Reap is between December and January. This is when the weather is at its driest and sunniest – but it’s also when the city sees the biggest crowds. April and May tend to be the hottest months, giving way to the rains that generally last from June until mid-November. Though visiting during the wet season might not sound ideal, it’s worth noting that it rarely rains all day, every day but rather in shorter showers during the afternoon. Keep in mind that the weather in Siem Reap stays hot and humid throughout the year – an important consideration as you’ll most likely be spending a couple of days out and about exploring Angkor. Remember to keep hydrated and protected from the sun! \\n\\n The splendours of Angkor are more than enough reason to visit Siem Reap. After you’ve taken in the temples, you’ll discover that this laid-back city is well worth exploring in its own right. The perfect Siem Reap itinerary balances visits to ancient temples and jaw dropping monuments with restaurant hopping, retail therapy, heavenly Khmer massages and lazy afternoons spent luxuriating by your private villa pool.##Temples \\n\\nThe ancient temples of Angkor are unequivocally the main draw at Siem Reap. The site is often colloquially referred to as Angkor Wat but in fact, Angkor Wat is just one of the temple structures located at the massive, 400 km2 Angkor Archaeological Park. \\n\\n Angkor, also known as Yasodharapura, was the capital city of the Khmer Empire which flourished between the 9th to the 15th centuries. The ruins of Angkor are located amid forests and farmland. The temples of the Angkor area number over one thousand, ranging in scale from nondescript piles of rubble scattered through rice fields to the magnificent Angkor Wat. Many of the temples at Angkor have been restored, and together, they comprise the most significant site of Khmer architecture. \\n\\n The entire expanse, including Angkor Wat and Angkor Thom is collectively protected as a UNESCO World Heritage Site. Due to the sheer size and scope of the site, most people spend at least three days exploring the area. Here are just a few of the most renowned temples at Angkor:\", \r\n    \"metadata\": {\"title\": \"test\"},\r\n    \"version_hash\": \"abc12s3\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{TESACHOR_RAG_v1}}/ingest",
+              "host": [
+                "{{TESACHOR_RAG_v1}}"
+              ],
+              "path": [
+                "ingest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Query",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"question\":  \"When should I go visiting in Siem Reap?\",\r\n    \"top_k\": 3\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{TESACHOR_RAG_v1}}/query",
+              "host": [
+                "{{TESACHOR_RAG_v1}}"
+              ],
+              "path": [
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"question\": \"Do you know Som Da?\",\r\n  \"top_k\": 10,\r\n  \"top_p\": 5\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{TESACHOR_RAG_v1}}/query",
+              "host": [
+                "{{TESACHOR_RAG_v1}}"
+              ],
+              "path": [
+                "query"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "API",
+      "item": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BaseUrl",
+      "value": ""
+    }
+  ]
+}
