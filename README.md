@@ -16,24 +16,6 @@ A production-grade Retrieval-Augmented Generation (RAG) system for scalable data
 
 ---
 
-## Architecture
-
-### High-Level Workflow
-
-```mermaid
-flowchart TD
-        A[User Query] --> B[Query Analyzer]
-        B --> C[Query Optimizer]
-        C --> D[Multi-Strategy Retriever]
-        subgraph D [Retrieval Phase]
-                D1[Semantic<br>Vector Search]
-                D2[Lexical<br>BM25 Search]
-                D3[Hybrid<br>RRF Fusion]
-        end
-        D --> E[Cross-Encoder Reranker]
-        E --> F[Top-K Results]
-```
-
 ### Stack Overview
 
 - **Data Ingestion:** LakeFS, chunking, embedding (async batch)
